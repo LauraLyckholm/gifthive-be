@@ -1,22 +1,43 @@
+// ------------ IMPORTS ------------ //
 import express from "express";
 import cors from "cors";
+import mongoose from "mongoose";
+// const routeName = require("./routes/routeName");
 
-// Defines the port the app will run on. Defaults to 8080, but can be overridden
-// when starting the server. Example command to overwrite PORT env variable value:
-// PORT=9000 npm start
+// ------------ VARIABLES ------------ //
+// Defines the port the app will run on
 const port = process.env.PORT || 8080;
 const app = express();
 
-// Add middlewares to enable cors and json body parsing
+// ------------ MIDDLEWARE ------------ //
+// Uses the imported routes in the app
+// app.use("/", routeName);
+// Middlewares to enable cors and json body parsing
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false })); // LOOK THIS UP
+// Middleware to handle error if service is down
+app.use((req, res, next) => {
+  if (mongoose.connection.readyState === 1) {
+    next();
+  } else {
+    res.status("503").json({ error: "Service unavailable" })
+  }
+})
 
-// Start defining your routes here
+// ------------ DATABASE CONNECTION ------------ //
+// Connection to the database through Mongoose
+const mongoUrl = process.env.MONGO_URL || "mongodb://localhost:27017/gifthive";
+mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.Promise = Promise;
+
+// Comment out when done with routes in /routes
 app.get("/", (req, res) => {
-  res.send("Hello Technigo!");
+  res.send("Hello world");
 });
 
-// Start the server
+// ------------ SERVER START ------------ //
+// Starts the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
