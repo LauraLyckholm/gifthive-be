@@ -1,8 +1,8 @@
 import mongoose, { Schema } from "mongoose";
 import crypto from "crypto";
 
-//Example schema
-export const userSchema = new Schema(
+// Schema for the user
+const UserSchema = new Schema(
     {
         username: {
             type: String,
@@ -17,16 +17,16 @@ export const userSchema = new Schema(
             minlength: 7,
             match: /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])/,
         },
-        accesstoken: {
+        accessToken: {
             type: String,
-            default: () => crypto.randomBytes(128).toString("hex"),
+            default: () => crypto.randomBytes(128).toString("hex")
         },
-        hive: [{
-            type: Schema.Types.ObjectId,
+        hives: [{
+            type: mongoose.SchemaTypes.ObjectId,
             ref: "Hive"
         }], // Reference to Hive schema for user's hives
-        items: [{
-            type: Schema.Types.ObjectId,
+        gifts: [{
+            type: mongoose.SchemaTypes.ObjectId,
             ref: "Gift"
         }], // Reference to Gift schema for user's gifts
     },
@@ -36,4 +36,4 @@ export const userSchema = new Schema(
 
 );
 
-export const UserModel = mongoose.model("User", userSchema);
+export const User = mongoose.model("User", UserSchema);

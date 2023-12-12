@@ -1,38 +1,46 @@
 // ------------ IMPORTS ------------ //
 import express from "express";
 import cors from "cors";
-import mongoose from "mongoose";
-import giftRoutes from "./routes/giftRoutes";
-// import hiveRoutes from "./routes/hiveRoutes";
+import listEndpoints from "express-list-endpoints";
+import dotenv from "dotenv";
+dotenv.config();
+import { connectToMongoDB } from "./config/db";
+import { serviceDown } from "./middleware/serviceDown";
+import { giftRouter } from "./routes/giftRoutes";
+import { userRouter } from "./routes/userRoutes";
 
 // ------------ VARIABLES ------------ //
 // Defines the port the app will run on
-const port = process.env.PORT || 8080;
+const port = process.env.PORT;
 const app = express();
 
 // ------------ MIDDLEWARE ------------ //
 // Uses the imported routes in the app
-// app.use("/", routeName);
 // Middlewares to enable cors and json body parsing
 app.use(cors());
 app.use(express.json());
-app.use(giftRoutes);
-// app.use(hiveRoutes);
+app.use(serviceDown); // Middleware to check if the database is running
 
-// Middleware to handle error if service is down
-app.use((req, res, next) => {
-  if (mongoose.connection.readyState === 1) {
-    next();
-  } else {
-    res.status("503").json({ error: "Service unavailable" })
+// ------------ APP ROUTES ------------ //
+// Displays endpoints
+app.get("/", (req, res) => {
+  try {
+    const endpoints = listEndpoints(app);
+    res.json({
+      message: "Welcome to the Gifthive API",
+      endpoints
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Something went wrong" });
   }
 })
 
+app.use("/user-routes", userRouter);
+app.use("/gift-routes", giftRouter);
+
 // ------------ DATABASE CONNECTION ------------ //
 // Connection to the database through Mongoose
-const mongoUrl = process.env.MONGO_URL || "mongodb://localhost:27017/gifthive";
-mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
-mongoose.Promise = Promise;
+connectToMongoDB();
 
 // ------------ SERVER START ------------ //
 // Starts the server
